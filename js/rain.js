@@ -294,7 +294,7 @@
             layer = map.createLayer('map_line', game.width, game.height);
             layer.resizeWorld();
 
-            map.setCollision([2], true, layer);
+            map.setCollision([1, 2 , 3]);
 
             player = game.add.sprite(0, game.world.height, 'player');
             player.anchor.setTo(0,1);
@@ -307,20 +307,23 @@
             player.animations.play('walk',3,true);
 
             keyDirection = game.input.keyboard.createCursorKeys();
+
+
         }
         this.update = function(){
             game.physics.arcade.collide(player, layer);
-
+            player.body.velocity.x = 0;
+            player.body.velocity.y = 0;
             if(keyDirection.up.isDown){
-                player.y -= 4;
+                player.body.velocity.y -= 200;
             }else if (keyDirection.down.isDown) {
-                player.y += 4;
+                player.body.velocity.y += 200;
             }
 
             if(keyDirection.left.isDown) {
-                player.x -= 4;
+                player.body.velocity.x -= 200;
             }else if (keyDirection.right.isDown) {
-                player.x += 4;
+                player.body.velocity.x += 200;
             }
         }
     }
