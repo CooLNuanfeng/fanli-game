@@ -272,15 +272,56 @@
 
     //排队场景页
     function queue(){
+        var map,player,layer, keyDirection;
         this.init = function(){
             console.log('queue init');
-            game.stage.backgroundColor = 0xFFCC33;
+            // game.stage.backgroundColor = 0xFFCC33;
         }
         this.preload = function(){
+            //地图数据
+            game.load.tilemap('ditu', imageBasePath+'map/mapline.json', null, Phaser.Tilemap.TILED_JSON);
+            //地图 瓦片
+            game.load.image('tiles', imageBasePath+'map/map.png', 16, 16);
+            //人物数据
+            game.load.atlas('player', imageBasePath+'game/player.png', imageBasePath+'data/player.json',Phaser.Loader.TEXTURE_ATLAS_JSON_HASH);
 
+            //loading....
         }
         this.create = function(){
+            game.physics.startSystem(Phaser.Physics.ARCADE);
+            map = game.add.tilemap('ditu');
+            map.addTilesetImage('map', 'tiles');
+            layer = map.createLayer('map_line', game.width, game.height);
+            layer.resizeWorld();
 
+            map.setCollision([2], true, layer);
+
+            player = game.add.sprite(0, game.world.height, 'player');
+            player.anchor.setTo(0,1);
+            game.physics.enable(player);
+            player.body.collideWorldBounds = true;
+
+            game.camera.follow(player);
+
+            player.animations.add('walk');
+            player.animations.play('walk',3,true);
+
+            keyDirection = game.input.keyboard.createCursorKeys();
+        }
+        this.update = function(){
+            game.physics.arcade.collide(player, layer);
+
+            if(keyDirection.up.isDown){
+                player.y -= 4;
+            }else if (keyDirection.down.isDown) {
+                player.y += 4;
+            }
+
+            if(keyDirection.left.isDown) {
+                player.x -= 4;
+            }else if (keyDirection.right.isDown) {
+                player.x += 4;
+            }
         }
     }
 
@@ -290,5 +331,5 @@
 	game.state.add('play',play);
     game.state.add('queue',queue);
 
-	game.state.start('boot');
+	game.state.start('queue');
 })();
