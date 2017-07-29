@@ -273,6 +273,7 @@
     //排队场景页
     function queue(){
         var map,player,layer, keyDirection;
+        this.x = 0; this.y = 0;
         this.init = function(){
             console.log('queue init');
             // game.stage.backgroundColor = 0xFFCC33;
@@ -288,13 +289,10 @@
             //loading....
         }
         this.create = function(){
-            game.physics.startSystem(Phaser.Physics.ARCADE);
             map = game.add.tilemap('ditu');
             map.addTilesetImage('map', 'tiles');
-            layer = map.createLayer('map_line', game.width, game.height);
+            layer = map.createLayer('map_line', winW, winH);
             layer.resizeWorld();
-
-            map.setCollision([1, 2 , 3]);
 
             player = game.add.sprite(0, game.world.height, 'player');
             player.anchor.setTo(0,1);
@@ -306,26 +304,41 @@
             player.animations.add('walk');
             player.animations.play('walk',3,true);
 
-            keyDirection = game.input.keyboard.createCursorKeys();
+            //游戏人物行走
+            var playerRun = game.add.tween(player);
+            playerRun.to({y:game.world.height - 160},1000,'Linear');
+            playerRun.to({x: 200},200,'Linear');
+            playerRun.to({y:game.world.height - 480},1000,'Linear');
+            playerRun.to({x: 400},500,'Linear');
+            playerRun.to({y:game.world.height - 580},1000,'Linear');
+            playerRun.start();
+
+            playerRun.onComplete.add(function(){
+                player.animations.stop('walk',1);
+                //alert('end')
+
+
+                // player.inputEnabled = true;
+                // player.input.enableDrag();
+                // game.physics.startSystem(Phaser.Physics.ARCADE);
+                // map.setCollision([1, 2 , 3]);
+
+                // game.input.addMoveCallback(function(ev){
+                //     console.log(ev);
+                //
+                // });
+
+            });
+
+
 
 
         }
         this.update = function(){
             game.physics.arcade.collide(player, layer);
-            player.body.velocity.x = 0;
-            player.body.velocity.y = 0;
-            if(keyDirection.up.isDown){
-                player.body.velocity.y -= 200;
-            }else if (keyDirection.down.isDown) {
-                player.body.velocity.y += 200;
-            }
 
-            if(keyDirection.left.isDown) {
-                player.body.velocity.x -= 200;
-            }else if (keyDirection.right.isDown) {
-                player.body.velocity.x += 200;
-            }
         }
+
     }
 
 
