@@ -7,7 +7,7 @@
 
 	var imageBasePath = 'asset/';
 	var score_sprite = ['jinbao','jinbi_game','yuanbao']
-	var game = new Phaser.Game(defaultW,winH,Phaser.AUTO,'gameContainer');
+	var game = new Phaser.Game(winW,winH,Phaser.AUTO,'gameContainer');
 
     var $mask = $('#mask');
     var $dialog = $('#sorceModal');
@@ -272,7 +272,7 @@
 
     //排队场景页
     function queue(){
-        var map,player,layer, keyDirection;
+        var map,player,layer, keyDirection,cursors;
         this.x = 0; this.y = 0;
         this.init = function(){
             console.log('queue init');
@@ -289,54 +289,90 @@
             //loading....
         }
         this.create = function(){
+
+            game.physics.startSystem(Phaser.Physics.arcade);
+
             map = game.add.tilemap('ditu');
             map.addTilesetImage('map', 'tiles');
-            layer = map.createLayer('map_line', winW, winH);
+            layer = map.createLayer('map_line');
+            map.setCollision([1,2,3]);
             layer.resizeWorld();
 
             player = game.add.sprite(0, game.world.height, 'player');
             player.anchor.setTo(0,1);
-            game.physics.enable(player);
+            game.camera.follow(player);
+
+            game.physics.enable(player, Phaser.Physics.ARCADE);
             player.body.collideWorldBounds = true;
 
-            game.camera.follow(player);
 
             player.animations.add('walk');
             player.animations.play('walk',3,true);
 
             //游戏人物行走
-            var playerRun = game.add.tween(player);
-            playerRun.to({y:game.world.height - 160},1000,'Linear');
-            playerRun.to({x: 200},200,'Linear');
-            playerRun.to({y:game.world.height - 480},1000,'Linear');
-            playerRun.to({x: 400},500,'Linear');
-            playerRun.to({y:game.world.height - 580},1000,'Linear');
-            playerRun.start();
-
-            playerRun.onComplete.add(function(){
-                player.animations.stop('walk',1);
-                //alert('end')
+            // var playerRun = game.add.tween(player);
+            // playerRun.to({y:game.world.height - 160},1000,'Linear');
+            // playerRun.to({x: 200},200,'Linear');
+            // playerRun.to({y:game.world.height - 480},1000,'Linear');
+            // playerRun.to({x: 400},500,'Linear');
+            // playerRun.to({y:game.world.height - 580},1000,'Linear');
+            // playerRun.start();
 
 
-                // player.inputEnabled = true;
-                // player.input.enableDrag();
-                // game.physics.startSystem(Phaser.Physics.ARCADE);
-                // map.setCollision([1, 2 , 3]);
+            cursors = game.input.keyboard.createCursorKeys();
 
-                // game.input.addMoveCallback(function(ev){
-                //     console.log(ev);
-                //
-                // });
-
-            });
-
-
-
-
+            // playerRun.onComplete.add(function(){
+            //     player.animations.stop('walk',1);
+            //     //alert('end')
+            //
+            //     //人物拖动
+            //
+            //     player.inputEnabled = true;
+            //     player.input.enableDrag(false);
+            //
+            //
+            //
+            //     //touch 移动
+            //     // game.camera.unfollow();
+            //     // var touchObj = game.input.touch;
+            //     // var startX = 0,startY = 0;
+            //     // touchObj.onTouchStart = function(ev){
+            //     //     startX = ev.touches[0].clientX;
+            //     //     startY = ev.touches[0].clientY;
+            //     // }
+            //     // touchObj.onTouchMove = function(ev){
+            //     //     game.camera.x += ev.touches[0].clientX - startX;
+            //     //     game.camera.y += ev.touches[0].clientY - startY;
+            //     // }
+            //
+            // });
+            // 点屏移动
+            // game.input.onTap.add(function(pointer){
+            //     if(pointer.y > game.height/2){
+            //         game.camera.y += 100;
+            //     }else{
+            //         game.camera.y -= 100;
+            //     }
+            //     if(pointer.x < game.width/2){
+            //         game.camera.x -= 100;
+            //     }else{
+            //         game.camera.x += 100;
+            //     }
+            // });
         }
         this.update = function(){
             game.physics.arcade.collide(player, layer);
+            if (cursors.left.isDown){
+                player.body.x -= 8;
+            }else if (cursors.right.isDown){
+                player.body.x += 8;
+            }
 
+            if (cursors.up.isDown){
+                player.body.y += 8;
+            }else if (cursors.down.isDown){
+                player.body.y -= 8;
+            }
         }
 
     }
