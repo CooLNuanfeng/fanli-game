@@ -290,19 +290,22 @@
         }
         this.create = function(){
 
-            game.physics.startSystem(Phaser.Physics.arcade);
+            game.physics.startSystem(Phaser.Physics.ARCADE);
 
             map = game.add.tilemap('ditu');
             map.addTilesetImage('map', 'tiles');
-            layer = map.createLayer('map_line');
+            // map.addTilesetImage('player');  // example https://phaser.io/examples/v2/tilemaps/tile-callbacks
+
             map.setCollision([1,2,3]);
+
+            layer = map.createLayer('map_line');
             layer.resizeWorld();
 
             player = game.add.sprite(0, game.world.height, 'player');
             player.anchor.setTo(0,1);
             game.camera.follow(player);
 
-            game.physics.enable(player, Phaser.Physics.ARCADE);
+            game.physics.enable(player);
             player.body.collideWorldBounds = true;
 
 
@@ -362,16 +365,18 @@
         }
         this.update = function(){
             game.physics.arcade.collide(player, layer);
+            player.body.velocity.x = 0;
+            player.body.velocity.y = 0;
             if (cursors.left.isDown){
-                player.body.x -= 8;
+                player.body.velocity.x -= 100;
             }else if (cursors.right.isDown){
-                player.body.x += 8;
+                player.body.velocity.x += 100;
             }
 
             if (cursors.up.isDown){
-                player.body.y += 8;
+                player.body.velocity.y += 100;
             }else if (cursors.down.isDown){
-                player.body.y -= 8;
+                player.body.velocity.y -= 100;
             }
         }
 
