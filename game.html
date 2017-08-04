@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en" style="font-size:50px;">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <link rel="stylesheet" href="styles/game.css">
+</head>
+<body>
+<div id="gameContainer" style="width:100%;height:100%;"></div>
+<a id="gameBtn" href="javascript:;" class="switch-btn start-btn"><span>每天有三次游戏机会哦</span></a>
+<a href="" class="game-btn look-btn"></a>
+<a href="" class="game-btn qcode-btn"></a>
+<a href="javascript:;" class="game-btn share-btn"><span></span></a>
+<div id="topMask" class="top-mask">返利前进卡个数： <span class="J_card_number"></span>个 <span class="top-mask-pd"></span> 抽奖码个数： <span class="J_qcode_number"></span>个</div>
+<div id="failModal" class="dialog-mask">
+    <div class="dialog">
+        <div class="dialog-body">
+            <div class="fail-get"></div>
+            <a href="javascript:;" class="J_fail_close"></a>
+        </div>
+    </div>
+</div>
+<div id="cardModal" class="dialog-mask">
+    <div class="dialog">
+        <div class="dialog-body">
+            <div class="dialog-notice">
+                <div class="notice-card"></div>
+                <h3>恭喜您~</h3>
+                <p class="card-text">抢到<strong>0</strong>张返利前行卡，<br>可以前行<span>0</span>步哦～</p>
+            </div>
+            <a href="javascript:;" class="dialog-close J_card_close"></a>
+        </div>
+    </div>
+</div>
+<div id="qcodeModal" class="dialog-mask">
+    <div class="dialog">
+        <div class="dialog-body">
+            <div class="dialog-notice">
+                <div class="notice-qcode"></div>
+                <h3>恭喜您~</h3>
+                <p class="qcode-text">棒棒哒～获得<strong>0</strong>个抽奖码，<br>离迪士尼豪华大奖<br>又近了一步哦！</p>
+            </div>
+            <a href="javascript:;" class="dialog-close J_qcode_close"></a>
+        </div>
+    </div>
+</div>
+<script src="js/phaser.min.js"></script>
+<script src="js/jquery.js"></script>
+<script src="js/game.js"></script>
+</body>
+</html>

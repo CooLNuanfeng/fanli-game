@@ -1,19 +1,63 @@
 ;(function(){
-    var winW = window.innerWidth,winH = window.innerHeight,defaultW = 375,defaultH = 667;
+    var winW = window.innerWidth,winH = window.innerHeight;
+
+    var playerStep = 0; //上一次走的位置
+
 	var totalSecond = 10;  //游戏时间
-	var score = 0;
-	var gravity = 100;
-	var gameOver = false;
+	var score = 0;  //本次游戏获得的前进卡 个数
+    var allScore = 0; //累计获得前进卡个数
+    var allQcode = 0; //累计获得 抽奖码个数
+	var gameOver = false; //单局结束
+    var dayGameOver = false; //一天 3 次结束
+    var gravity = 100;
+    var sendScoreCount = 0; // 已发卡券计数统计
+    var currentGame = 0;  //当前是第几次游戏
+
+    var playerMain = true; //自己玩，非帮好友玩
 
 	var imageBasePath = 'asset/';
-	var score_sprite = ['jinbao','jinbi_game','yuanbao']
 	var game = new Phaser.Game(winW,winH,Phaser.AUTO,'gameContainer');
 
-    var $mask = $('#mask');
-    var $dialog = $('#sorceModal');
-    var $goBtn = $('.J_go_next');
+    var $failModal = $('#failModal'); //没有得分弹层
+    var $failClose = $('.J_fail_close');
+
+    var $cardModal = $('#cardModal'); //获得前进卡弹层
+    var $cardClose = $('.J_card_close');
+
+    var $qcodeModal = $('#qcodeModal'); //获得抽奖码弹层
+    var $qcodeClose = $('.J_qcode_close');
+
+    var $topMask = $('#topMask'); //顶部数量显示
+
+    var $gameBtn = $('#gameBtn'); //游戏开始开关控制
 
 
+
+    var pathEnd = false; //是否走到地图 顶部
+
+    //轨迹点位置数组
+    var pointerArr = [
+        {x: 90, y: 40},
+        {x: 100, y: 100},
+        {x: 85, y: 170},
+        {x: 45, y: 230},
+        {x: -20, y: 265},
+        {x: -80, y: 310},
+        {x: -150, y: 370},
+        {x: -150, y: 450},
+        {x: -140, y: 500},
+        {x: -85, y: 540}, //10
+        {x: 90, y: 690},
+        {x: 100, y: 760},
+        {x: 40, y: 800},
+        {x: 15, y: 875},
+        {x: -65, y: 890},
+        {x: -115, y: 950},
+        {x: -155, y: 1030},
+        {x: -120, y: 1100},
+        {x: -50, y: 1150},
+        {x: 10, y: 1200},
+    ];
 
     //初始场景
     function boot(){
@@ -30,11 +74,8 @@
 			game.scale.refresh();
 		}
         this.preload = function(){
-			game.stage.backgroundColor = 0xe43134;
-			//loading
-			game.load.image('jinbi',imageBasePath+'loading/jinbi.png');
-			game.load.image('processing',imageBasePath+'loading/processing.png');
-			game.load.image('process_bg',imageBasePath+'loading/process_bg.png');
+            // game.load.image('mm',imageBasePath+'mm.png');
+			game.stage.backgroundColor = 0xd0e4cb;
 		}
         this.create = function(){
 			game.state.start('preload');
@@ -42,351 +83,409 @@
     }
     //预加载资源场景
     function preload(){
+        var smileAudio,boomAudio,timebg;
+        var titleHead,numberCount;
+        var bg,player;
         this.preload = function(){
-			//game spritesheet
-			game.load.spritesheet('baozha',imageBasePath+'game/baozha.png',68,67);
-			game.load.spritesheet('caishen_sprite',imageBasePath+'game/caishen_sprite.png',83,102);
-			game.load.spritesheet('defen_baozha',imageBasePath+'game/defen_baozha.png',52,53);
-			//image
-			game.load.image('bg',imageBasePath+'game/bg.png');
-			game.load.image('bg_bottom',imageBasePath+'game/bg_bottom.png');
-			game.load.image('jinbao',imageBasePath+'game/jinbao.png');
-			game.load.image('jinbi_game',imageBasePath+'game/jinbi.png');
-			game.load.image('score_bg',imageBasePath+'game/score_bg.png');
-			game.load.image('time_bg',imageBasePath+'game/time_bg.png');
-			game.load.image('top_icon',imageBasePath+'game/top_icon.png');
-			game.load.image('top_icon_right',imageBasePath+'game/top_icon_right.png');
-			game.load.image('yuanbao',imageBasePath+'game/yuanbao.png');
-			game.load.image('zhadan',imageBasePath+'game/zhadan.png');
-			//loading menu
-			var processBg = game.add.sprite(game.width/2,game.height/2-2,'process_bg');
-			var preloadSprite = game.add.sprite(game.width/2,game.height/2,'processing');
-            processBg.anchor.setTo(0.5,0);
-			preloadSprite.anchor.setTo(0.5,0);
-			preloadSprite.visible = false;
-			var loadText = game.add.text(game.width/2,game.height/2+22,'0%',{font: "bold 16px Arial", fill: "#fff", boundsAlignH: "center", boundsAlignV: "middle"});
+            game.load.image('bg',imageBasePath+'bg.jpg');
+            game.load.image('kabao',imageBasePath+'kabao.png');
+            game.load.image('titleDjs',imageBasePath+'time-banner.png');
+            game.load.image('timebg',imageBasePath+'time-bg.png');
+            game.load.spritesheet('number',imageBasePath+'number.png',213,266);
+            game.load.spritesheet('defen_baozha',imageBasePath+'defen_baozha.png',104,106);
+            game.load.spritesheet('baozha',imageBasePath+'baozha.png',136,134);
+            game.load.audio('smile',imageBasePath+'smile.wav');
+            game.load.audio('boom',imageBasePath+'boom.wav');
+            game.load.spritesheet('startBtn',imageBasePath+'startbtn.png',136,150);
+            game.load.image('player', imageBasePath+'player.png');
+            game.load.image('dialogok',imageBasePath+'medal.png');
+            game.load.image('dialogfail',imageBasePath+'medal-fail.png');
+            game.load.spritesheet('close',imageBasePath+'close.png',65,63);
+            game.load.image('card',imageBasePath+'dialog-card.png');
+            game.load.image('qcode',imageBasePath+'dialog-code.png');
+
+
+
+            // var mm = game.add.image(100,10,'mm');
+            // game.load.setPreloadSprite(mm);
+
+            var loadText = game.add.text(game.width/2,game.height/2+22,'loading... (0%)',{font: "bold 16px Arial", fill: "#fff", boundsAlignH: "center", boundsAlignV: "middle"});
 			loadText.anchor.setTo(0.5,0);
-			game.load.setPreloadSprite(preloadSprite);
-			game.load.onLoadStart.add(function(){},this);
-			game.load.onFileComplete.add(function(progress, cacheKey, success, totalLoaded, totalFiles){
-				loadText.text = progress + '%('+totalLoaded+'/'+totalFiles+')';
+            game.load.onFileComplete.add(function(progress){
+				loadText.text = 'loading... '+ '('+progress+'%)';
 			},this);
 			game.load.onLoadComplete.add(function(){
-                preloadSprite.destroy();
-                processBg.destroy();
-				loadText.destroy();
+                loadText.text = 'loading... '+ '(100%)';
+				setTimeout(function(){
+                    // mm.destroy();
+                    loadText.destroy();
+                    $gameBtn.show();
+                },200);
 			},this);
 		},
 		this.create = function(){
-            var timer,count = 3;
-            $mask.show();
-            timer = setInterval(function(){
-                if(!count){
-                    $mask.remove();
-                    clearInterval(timer);
-                    game.state.start('play');
+            var _this = this;
+            // bg = game.add.image(game.world.centerX, game.world.height,'bg');
+            // bg.scale.setTo(0.5);
+            // bg.anchor.setTo(0.5,1);
+            // game.world.setBounds(0, 0, game.width, game.height);
+            bg = game.add.image(game.world.centerX, game.world.height,'bg');
+            bg.scale.setTo(0.5);
+            bg.anchor.setTo(0.5,1);
+
+            player = game.add.image(game.world.centerX + 85, game.world.height, 'player');
+            player.scale.setTo(0.5);
+            player.anchor.setTo(0,1);
+            game.camera.follow(player);
+            //采用div 开关控制
+            $gameBtn.on('click',function(){
+                if(currentGame > 2 || $gameBtn.hasClass('end-btn')){
+                    timebg.destroy();
+                    $gameBtn.removeClass('again-btn').addClass('end-btn');
+                    showBtns(allScore,Math.floor(playerStep/10));
                     return;
                 }
-                count--;
-                $mask.children('div').html(count);
-            },1000);
-		}
-    }
-    //游戏场景
-    function play(){
-        this.create = function(){
-            var borderSpace = 45;
-			game.add.sprite(0,0,'bg');
-			game.add.sprite(0,0,'top_icon');
-			game.add.sprite(game.width,0,'top_icon_right').anchor.setTo(1,0);
-			game.add.sprite(0,game.height,'bg_bottom').anchor.setTo(0,1);
-			game.add.sprite(20,22,'time_bg');
-			game.add.sprite(game.width-borderSpace+20,22,'score_bg').anchor.setTo(1,0);
-            var caishen = game.add.sprite(borderSpace,70,'caishen_sprite');
-            this.caishen = caishen;
-			caishen.anchor.setTo(0.5,0);
-            caishen.animations.add('fly');
-			caishen.play('fly',2,true);
-            this.caishen_tween = game.add.tween(caishen).to( { x: game.width-borderSpace }, 3000, Phaser.Easing.Linear.None, true, 0, -1, true);
-            this.updateTimeEvent = game.time.events.loop(1000, this.updateTime, this);
-            this.makeBallTimeEvent = game.time.events.loop(1000, this.generateBalls, this);
-            this.timeText = game.add.text(96,48,totalSecond+'s',{font: "bold 26px Arial", fill: "#fff", boundsAlignH: "center", boundsAlignV: "middle"});
-			this.timeText.anchor.setTo(0.5,0.5);
-			this.scoreText = game.add.text(game.width-100,57,score,{font: "bold 22px Arial", fill: "#fef000", boundsAlignH: "center", boundsAlignV: "middle"});
-			this.scoreText.anchor.setTo(0.5,0.5);
-			this.ballGroup = game.add.group();
-			this.ballGroup.enableBody = true;
+                currentGame++;
+                if($gameBtn.hasClass('start-btn')){
+                    $gameBtn.hide().removeClass('start-btn').addClass('again-btn');
+                    $('.game-btn').hide();
 
-			var score_explosions = game.add.group();
-			this.score_explosions = score_explosions;
-			score_explosions.createMultiple(30, 'defen_baozha'); // 创建30个得分效果
-			score_explosions.forEach(this.setupInvader, this);
+                    bg.alpha = 0.2;
+                    game.stage.backgroundColor = 0x000000;
+                    console.log(game.world.centerX,game.world.height,player.x,player.y);
+                    player.alpha = 0;
+                    $topMask.hide();
 
-			var zhadan_explosions = game.add.group();
-			this.zhadan_explosions = zhadan_explosions;
-			zhadan_explosions.createMultiple(30, 'baozha');
-			zhadan_explosions.forEach(this.setupInvader, this);
+                    titleHead = game.add.image(game.world.centerX, 20, 'titleDjs');
+                    titleHead.scale.setTo(0.45);
+                    titleHead.anchor.setTo(0.5,-1);
+                    numberCount = game.add.sprite(game.width/2,game.height/2,'number',2);
+                    numberCount.scale.setTo(0.5);
+                    numberCount.anchor.setTo(0.5);
+                    var timer,count = 2;
+                    clearInterval(timer);
+                    timer = setInterval(function(){
+                        if(count<=0){
+                            clearInterval(timer);
+                            titleHead.destroy();
+                            numberCount.destroy();
+                            _this.play();
+                            return;
+                        }
+                        count--;
+                        numberCount.frame = count;
+                    },1000);
+                    return;
+                }
+                if($gameBtn.hasClass('again-btn')){
+
+                    game.time.events.remove(_this.updateTimeEvent);
+                    game.time.events.remove(_this.makeBallTimeEvent);
+                    smileAudio.destroy();
+                    boomAudio.destroy();
+
+                    timebg.destroy();
+                    $gameBtn.hide();
+                    $topMask.hide();
+                    $('.game-btn').hide();
+
+                    game.world.setBounds(0, 0, game.width, game.height);
+                    bg.destroy();
+                    player.destroy();
+                    bg = game.add.image(game.world.centerX, game.world.height,'bg');
+                    bg.scale.setTo(0.5);
+                    bg.anchor.setTo(0.5,1);
+
+                    bg.alpha = 0.2;
+                    game.stage.backgroundColor = 0x000000;
+                    titleHead = game.add.image(game.world.centerX, 20, 'titleDjs');
+                    titleHead.scale.setTo(0.45);
+                    titleHead.anchor.setTo(0.5,-1);
+                    numberCount = game.add.sprite(game.width/2,game.height/2,'number',2);
+                    numberCount.scale.setTo(0.5);
+                    numberCount.anchor.setTo(0.5);
+                    var timer,count = 2;
+                    clearInterval(timer);
+                    timer = setInterval(function(){
+                        if(count<=0){
+                            clearInterval(timer);
+                            titleHead.destroy();
+                            numberCount.destroy();
+                            _this.play();
+                            return;
+                        }
+                        count--;
+                        numberCount.frame = count;
+                    },1000);
+                    return;
+                }
+            });
         }
-        this.update = function(){
-			this.ballGroup.forEachExists(this.checkCollide,this);
-			if(gameOver || totalSecond <= 0){
-				return;
-			}
-		}
-        //出屏销毁
-        this.checkCollide = function(ball){
-			if(ball.y - ball.height/2 > game.height){
-				ball.kill();
-			}
-		}
+        this.play = function(){
+            totalSecond = 10;
+            sendScoreCount = 0;
+            score = 0;
+            gameOver = false; //单局结束
+            gravity = 100;
 
-        this.setupInvader = function(invader){
-			invader.anchor.x = 0.5;
-			invader.anchor.y = 0.5;
-			invader.animations.add('kaboom');
-		}
+            smileAudio = game.add.audio('smile',1);
+            boomAudio = game.add.audio('boom',1);
+            timebg = game.add.image(20,20,'timebg');
+            timebg.scale.setTo(0.5);
+
+            this.updateTimeEvent = game.time.events.loop(1000, this.updateTime, this);
+            this.makeBallTimeEvent = game.time.events.loop(800, this.generateBalls, this);
+            this.timeText = game.add.text(90,30,totalSecond+'s',{font: "normal 12px Arial", fill: "#000", boundsAlignH: "center", boundsAlignV: "middle"});
+            this.timeText.anchor.setTo(0.5,0.5);
+            // this.scoreText = game.add.text(game.width-100,57,score,{font: "bold 22px Arial", fill: "#fef000", boundsAlignH: "center", boundsAlignV: "middle"});
+            // this.scoreText.anchor.setTo(0.5,0.5);
+            this.ballGroup = game.add.group();
+            this.ballGroup.enableBody = true;
+        }
         //游戏计时
         this.updateTime = function(){
-			gravity += 10;  //下落速度
+			gravity += 20;  //下落速度
 			if(totalSecond-- <= 0){
 				this.gameOver();
 				return;
 			}
-			// this.generateBalls();
 			this.timeText.text =  totalSecond+'s'
 		}
         // 礼品生成函数
         this.generateBalls = function(){
+            if(gameOver){
+                return;
+            }
 			this.makeBall();
-
 			this.ballGroup.setAll('body.velocity.y', gravity); //设置每个礼品的 y 速度
 		}
         //生成礼品
 		this.makeBall = function(){
 			var ball,ballInfo;
-			var ballInfos = this.getBallInfo(4);
+			var ballInfos = this.getBallInfo();
 			for(var i = 0 , len = ballInfos.length ; i < len; i++){
+                var random = Math.random(),randomScale;
+                if(random < 0.25){
+                    randomScale = 0.25;
+                }
+                if(random > 0.45){
+                    randomScale = 0.45;
+                }
 				ballInfo =  ballInfos[i];
-				ball = game.add.sprite(ballInfo.x, ballInfo.y, ballInfo.name, 0, this.ballGroup);
+				ball = game.add.sprite(ballInfo.x, 0, 'kabao', 0, this.ballGroup);
+                ball.scale.setTo(randomScale);
 				ball.inputEnabled = true;
 				ball.anchor.setTo(0.5,0.5);
-				if(ballInfo.name !== 'zhadan'){
+				if(ballInfo.name == 'addScore'){
 					ball.events.onInputDown.add(this.addScore,this);
 				}else{
-					ball.events.onInputDown.add(this.clickZhadan,this);
+					ball.events.onInputDown.add(this.emptyScore,this);
 				}
 			}
 		}
         //生成礼品 算法
-		this.getBallInfo = function(len){
-			var row = 3;
-			var rowHeight = 70;
-			var randomHeight = 30;
-			if(totalSecond > 22 && totalSecond < 29){
-				row = 1;
-				randomHeight = 40;
-				rowHeight = 80;
-			}else if(totalSecond > 10 && totalSecond < 23){
-				row = 2;
-				randomHeight = 80;
-				randomHeight = 90;
-			}else if(totalSecond < 11){
-				row = 3;
-			}
-
-			len = len || 1;
-			len = Math.min(len,4);
-			var space = 5;
-			var name = 'zhadan';
+		this.getBallInfo = function(){
 			var result = [];
-			var x;
-			var spaceWidth = game.width/11;
-			var xs = [
-				spaceWidth,
-				spaceWidth*4,
-				spaceWidth*7,
-				spaceWidth*10
-			];
-			for(var j = 0 ; j < row ; j++){
-				for(var i = 0 ; i < len ; i++){
-					var curSprite = parseInt(Math.random()*space);
-					if(curSprite < 3){
-						name = score_sprite[curSprite];
-					}
-					//var cur =  Math.floor(Math.random()*xs.length);
-					x = xs[i];
-					//xs.splice(cur,1);
-					result.push({x:x,y:this.caishen.y+this.caishen.height + rowHeight*j - Math.random()*randomHeight,name:name});
-				}
-			}
-            console.log(result);
-			return result;
+            var len = Math.floor(Math.random()*5+1);// 每秒 产生 1 - 5个
+            for(var i=0; i<len; i++){
+                var probability = Math.floor(Math.random()*1+1); //概率 25%   //100%
+                var json = {
+                    x : Math.floor(Math.random()*(winW-80) + 50)
+                }
+                if(probability == 1 && sendScoreCount<9){
+                    json.name = 'addScore';
+                    sendScoreCount ++;
+                }else{
+                    json.name =  'emptyScore';
+                }
+                result.push(json);
+            }
+            // console.log(result);
+            return result;
 		}
-        //得分事件
+        //得分
         this.addScore = function(ball){
-			this.scoreKabom(ball);
-			ball.kill();
-			score += 10;
-			this.scoreText.text = score;
-		}
+            if(!ball.clickflag){
+                smileAudio.play();
+                ball.loadTexture('defen_baozha', 0, false);
+                var kaboom = ball.animations.add('kaboom', [0, 1]);
+                ball.play('kaboom', 4, false, true);
+                kaboom.onComplete.add(function(){
+                    ball.kill();
+                },this);
+                score += 1;
+                // this.scoreText.text = score;
+            }
+            ball.clickflag = true;
+        }
+        this.emptyScore = function(ball){
+            if(!ball.clickflag){
+                boomAudio.play();
+                ball.loadTexture('baozha', 0, false);
+                var empkaboom = ball.animations.add('baozha', [0, 1]);
+                ball.play('baozha', 4, false, true);
+                empkaboom.onComplete.add(function(){
+                     ball.kill();
+                },this);
+            }
+            ball.clickflag = true;
+        }
         //游戏结束
 		this.gameOver = function(){
+            allScore += score;
+            var _this = this;
 			gameOver = true;
-			this.caishen.animations.stop('fly');
-			game.tweens.remove(this.caishen_tween);
-			this.ballGroup.forEachExists(this.removeEvent,this);
 			game.time.events.remove(this.updateTimeEvent);
-			game.time.events.remove(this.makeBallTimeEvent);
+            setTimeout(function(){
+                bg.alpha = 1;
+                game.stage.backgroundColor = 0xd0e4cb;
+                console.log(score,sendScoreCount,currentGame);
+                if(score == 0) { //一个没得到
+                    $failModal.show();
+                    $failClose.off('click');
+                    $failClose.on('click',function(){
+                        $failModal.hide();
+                        $gameBtn.trigger('click');
+                    });
+                }else{  //已获得前进卡 弹层提示
+                    timebg.destroy();
+                    _this.timeText.destroy();
+                    game.time.events.remove(_this.makeBallTimeEvent);
+                    _this.ballGroup.forEachExists(_this.removeEvent,_this);
+                    smileAudio.destroy();
+                    boomAudio.destroy();
+                    if(playerMain){ //自己玩的
+                        $('.card-text').find('strong,span').html(score);
+                        $cardModal.show();
+                        $cardClose.off('click');
+                        $cardClose.on('click',function(){
+                            $cardModal.hide();
+                            _this.queue(score);
+                        });
+                    }else{  //帮好友玩
 
-            $dialog.show();
-            $goBtn.on('click',function(){
-                $dialog.hide();
-                game.state.start('queue');
-            });
-		}
-        //炸弹事件
-		this.clickZhadan = function(ball){
-			this.zhadanKabom(ball);
-			this.gameOver();
+                    }
+                }
+            },2000);
 		}
         //清楚事件
 		this.removeEvent = function(ball){
 			ball.events.onInputDown.removeAll();
 			ball.kill();
 		}
-        //得分动画
-        this.scoreKabom = function(alien){
-			var explosions = this.score_explosions;
-			var explosion = explosions.getFirstExists(false);
-			explosion.reset(alien.body.x+alien.width/2, alien.body.y+alien.height/2);
-			explosion.play('kaboom', 4, false, true);
-		}
-        //炸弹动画
-		this.zhadanKabom = function(alien){
-			var explosions = this.zhadan_explosions;
-			var explosion = explosions.getFirstExists(false);
-			explosion.reset(alien.body.x+alien.width/2, alien.body.y+alien.height/2);
-			explosion.play('kaboom', 4, false, true);
-		}
-    }
-
-    //排队场景页
-    function queue(){
-        var map,player,layer, keyDirection,cursors;
-        this.x = 0; this.y = 0;
-        this.init = function(){
-            console.log('queue init');
-            // game.stage.backgroundColor = 0xFFCC33;
-        }
-        this.preload = function(){
-            //地图数据
-            game.load.tilemap('ditu', imageBasePath+'map/mapline.json', null, Phaser.Tilemap.TILED_JSON);
-            //地图 瓦片
-            game.load.image('tiles', imageBasePath+'map/map.png', 16, 16);
-            //人物数据
-            game.load.atlas('player', imageBasePath+'game/player.png', imageBasePath+'data/player.json',Phaser.Loader.TEXTURE_ATLAS_JSON_HASH);
-
-            //loading....
-        }
-        this.create = function(){
-
-            game.physics.startSystem(Phaser.Physics.ARCADE);
-
-            map = game.add.tilemap('ditu');
-            map.addTilesetImage('map', 'tiles');
-            // map.addTilesetImage('player');  // example https://phaser.io/examples/v2/tilemaps/tile-callbacks
-
-            map.setCollision([1,2,3]);
-
-            layer = map.createLayer('map_line');
-            layer.resizeWorld();
-
-            player = game.add.sprite(0, game.world.height, 'player');
-            player.anchor.setTo(0,1);
-            game.camera.follow(player);
-
-            game.physics.enable(player);
-            player.body.collideWorldBounds = true;
 
 
-            player.animations.add('walk');
-            player.animations.play('walk',3,true);
+        this.queue = function(score){
+            var tmpStep = playerStep; //人物起始点
+            console.log(tmpStep,'start init point');
+            var playerRun;
+            var leftStep; //剩余步数
+            playerStep += score;
 
-            //游戏人物行走
-            // var playerRun = game.add.tween(player);
-            // playerRun.to({y:game.world.height - 160},1000,'Linear');
-            // playerRun.to({x: 200},200,'Linear');
-            // playerRun.to({y:game.world.height - 480},1000,'Linear');
-            // playerRun.to({x: 400},500,'Linear');
-            // playerRun.to({y:game.world.height - 580},1000,'Linear');
-            // playerRun.start();
+            //ajax 同步数据
+            // $.ajax('http://localhost');
+            bg.destroy();
+            game.world.setBounds(0, 0, 900, 1334);
+            bg = game.add.image(game.world.centerX, game.world.height,'bg');
+            bg.scale.setTo(0.5);
+            bg.anchor.setTo(0.5,1);
 
+            console.log(playerStep,score,'step');
 
-            cursors = game.input.keyboard.createCursorKeys();
+            if(currentGame>1){ //非第一次游戏
+                console.log('senc');
+                var stepcur = tmpStep-1 < 0 ? 0 : tmpStep-1;
+                player = game.add.image(game.world.centerX + pointerArr[stepcur].x, game.world.height - pointerArr[stepcur].y, 'player');
+                player.scale.setTo(0.5);
+                player.anchor.setTo(0,1);
+                game.camera.follow(player);
+                //游戏人物行走
+                playerRun = game.add.tween(player);
+                for(var i=0; i<score; i++){
+                    var curPoint = tmpStep+i;
+                    if(curPoint < 19){
+                        playerRun.to({x:game.world.centerX + pointerArr[curPoint].x, y:game.world.height - pointerArr[curPoint].y},500,'Linear');
+                    }else{
+                        pathEnd = true;
+                        leftStep = curPoint - 20;
+                    }
+                }
 
-            // playerRun.onComplete.add(function(){
-            //     player.animations.stop('walk',1);
-            //     //alert('end')
-            //
-            //     //人物拖动
-            //
-            //     player.inputEnabled = true;
-            //     player.input.enableDrag(false);
-            //
-            //
-            //
-            //     //touch 移动
-            //     // game.camera.unfollow();
-            //     // var touchObj = game.input.touch;
-            //     // var startX = 0,startY = 0;
-            //     // touchObj.onTouchStart = function(ev){
-            //     //     startX = ev.touches[0].clientX;
-            //     //     startY = ev.touches[0].clientY;
-            //     // }
-            //     // touchObj.onTouchMove = function(ev){
-            //     //     game.camera.x += ev.touches[0].clientX - startX;
-            //     //     game.camera.y += ev.touches[0].clientY - startY;
-            //     // }
-            //
-            // });
-            // 点屏移动
-            // game.input.onTap.add(function(pointer){
-            //     if(pointer.y > game.height/2){
-            //         game.camera.y += 100;
-            //     }else{
-            //         game.camera.y -= 100;
-            //     }
-            //     if(pointer.x < game.width/2){
-            //         game.camera.x -= 100;
-            //     }else{
-            //         game.camera.x += 100;
-            //     }
-            // });
-        }
-        this.update = function(){
-            game.physics.arcade.collide(player, layer);
-            player.body.velocity.x = 0;
-            player.body.velocity.y = 0;
-            if (cursors.left.isDown){
-                player.body.velocity.x -= 100;
-            }else if (cursors.right.isDown){
-                player.body.velocity.x += 100;
+            }else{
+                console.log('first');
+                player = game.add.image(game.world.centerX + 85, game.world.height, 'player');
+                player.scale.setTo(0.5);
+                player.anchor.setTo(0,1);
+                game.camera.follow(player);
+                //游戏人物行走
+                playerRun = game.add.tween(player);
+                for(var i=0; i<score; i++){
+                    playerRun.to({x:game.world.centerX + pointerArr[i].x, y:game.world.height - pointerArr[i].y},500,'Linear');
+                }
             }
 
-            if (cursors.up.isDown){
-                player.body.velocity.y += 100;
-            }else if (cursors.down.isDown){
-                player.body.velocity.y -= 100;
-            }
+            playerRun.start();
+            playerRun.onComplete.add(function(){
+                if(pathEnd){
+                    bg.destroy();
+                    bg = game.add.image(game.world.centerX, game.world.height,'bg');
+                    bg.scale.setTo(0.5);
+                    bg.anchor.setTo(0.5,1);
+                    player.destroy();
+                    player = game.add.image(game.world.centerX + 85, game.world.height, 'player');
+                    player.scale.setTo(0.5);
+                    player.anchor.setTo(0,1);
+                    game.camera.follow(player);
+
+                    // playerRun.stop();
+                    playerRun = game.add.tween(player);
+                    for(var i=0; i<leftStep; i++){
+                        playerRun.to({x:game.world.centerX + pointerArr[i].x, y:game.world.height - pointerArr[i].y},500,'Linear');
+                    }
+                    playerRun.start();
+                    showBtns(allScore,Math.floor(playerStep/10));
+                    return;
+                }
+                if(playerStep > 10){
+                    allQcode += Math.floor(playerStep/10);
+                    $('.qcode-text').find('strong').html(Math.floor(playerStep/10));
+                    $qcodeModal.show();
+                    $qcodeClose.on('click',function(){
+                        $qcodeModal.hide();
+                        $('.share-btn').addClass('active').find('span').html('邀请好友帮你抢更多的返利前行卡~ 好友新开局你将额外获得一个抽奖码呦');
+                        showBtns(allScore,Math.floor(playerStep/10));
+                    });
+                }else{
+                    $('.share-btn').addClass('active').find('span').html('还差'+(10-playerStep)+'张前行卡就可以获得1个抽奖码，快去邀请好友帮你吧!');
+                    showBtns(allScore,Math.floor(playerStep/10));
+                }
+                //ajax 记录
+                //
+            },this);
         }
 
     }
+
+
 
 
     game.state.add('boot',boot);
 	game.state.add('preload',preload);
-	game.state.add('play',play);
-    game.state.add('queue',queue);
 
-	game.state.start('queue');
+	game.state.start('boot');
+
+    function showBtns(card,qcode){
+        $('.J_card_number').html(card);
+        $('.J_qcode_number').html(qcode);
+        $('.game-btn').show();
+        $topMask.show();
+        if(currentGame < 3 ){
+            $gameBtn.show();
+        }else{
+            dayGameOver = true;
+            $('.share-btn').addClass('active').find('span').html('你今天的三次游戏机会已用完，想要获得更多抽奖码就快快邀请好友帮忙吧！');
+            $gameBtn.removeClass('again-btn').addClass('end-btn').show();
+        }
+    }
+
 })();

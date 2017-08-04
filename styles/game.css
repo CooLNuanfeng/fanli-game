@@ -1,17 +1,61 @@
-* { margin: 0; padding: 0; }
+* { margin: 0; padding: 0; font-family: 'Helvetica Neue',Helvetica,STHeiTi,sans-serif; }
 
 canvas { margin: 0 auto; }
 
-.mask { position: fixed; display: none; top: 0; right: 0; bottom: 0; left: 0; z-index: 50; opacity: .8; background: black; }
+.top-mask { display: none; position: fixed; top: 0; left: 0; right: 0; height: .6rem; padding: 0 .2rem; line-height: .6rem; color: #fff; background: rgba(0, 0, 0, 0.8); z-index: 40; font-size: .25rem; }
 
-.mask div { height: 100%; display: flex; justify-content: center; align-items: center; color: #fff; font-size: 1rem; }
+.top-mask .top-mask-pd { padding: 0 .4rem; }
 
 .dialog-mask { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 50; background: rgba(0, 0, 0, 0.8); }
 
-.dialog { position: absolute; top: 50%; left: 50%; padding: .2rem .5rem; transform: translateX(-50%) translateY(-50%); margin: .2rem; border-radius: .1rem; background: #fff; }
+.dialog { display: flex; height: 100%; justify-content: center; align-items: center; }
 
 .dialog-body { text-align: center; font-size: .2rem; }
 
-.dialog-btn { padding: .1rem; }
+.fail-get { width: 5.22rem; height: 7rem; background: url(../asset/medal-fail.png) no-repeat; background-size: contain; }
 
-.dialog-btn a { display: block; justify-content: center; align-items: center; color: #fff; background: orange; text-align: center; font-size: .2rem; border-radius: .06rem; }
+.J_fail_close { display: inline-block; width: 0.65rem; height: 0.63rem; background-size: 0.66rem 1.98rem; background-image: url(../asset/close.png); background-position: 0% 100%; }
+
+.dialog-notice { width: 5.22rem; height: 7rem; background: url(../asset/medal.png) no-repeat; background-size: contain; text-align: center; }
+
+.dialog-notice h3 { font-size: .62rem; font-weight: 500; margin-top: .5rem; margin-bottom: .15rem; }
+
+.dialog-notice p { font-size: .34rem; }
+
+.dialog-notice p strong { padding: 0 .05rem; font-weight: 500; font-size: .54rem; }
+
+.dialog-notice p span { padding: 0 .05rem; }
+
+.notice-card { display: inline-block; width: 3.3rem; height: 2.5rem; margin-top: .8rem; background: url(../asset/dialog-card.png) no-repeat; background-size: contain; }
+
+.notice-qcode { width: 2.15rem; height: 1.24rem; margin-top: 1.2rem; display: inline-block; background: url(../asset/dialog-code.png) no-repeat; background-size: contain; }
+
+.dialog-close { margin-top: .2rem; display: inline-block; width: 0.65rem; height: 0.63rem; background-size: 0.66rem 1.98rem; background-image: url(../asset/close.png); background-position: 0% 49.62963%; }
+
+.game-btn { position: fixed; display: none; }
+
+.look-btn { top: 1.75rem; left: .05rem; width: 1.14rem; height: 1.19rem; background-size: 1.16rem 3.67rem; background-image: url(../asset/btns.png); background-position: 0% 0%; }
+
+.qcode-btn { top: 3rem; left: .05rem; width: 1.16rem; height: 1.19rem; background-size: 1.16rem 3.67rem; background-image: url(../asset/btns.png); background-position: 0 50%; }
+
+.share-btn { top: 1.75rem; right: .05rem; width: 1.15rem; height: 1.19rem; background-size: 1.16rem 3.67rem; background-image: url(../asset/btns.png); background-position: 0% 100%; }
+
+.share-btn span { display: none; position: absolute; top: 1.2rem; right: .5rem; width: 4.1rem; border-radius: 4px; padding: .1rem .2rem; color: #fff285; font-size: .2rem; background: #000; }
+
+.share-btn.active { display: block; }
+
+.share-btn.active span { display: block; }
+
+.switch-btn { position: fixed; bottom: .2rem; left: 0.05rem; display: block; }
+
+.switch-btn span { display: none; position: absolute; top: -.8rem; left: .5rem; width: 2.5rem; text-align: center; border-radius: 4px; padding: .1rem .2rem; color: #fff285; font-size: .2rem; background: #000; }
+
+.start-btn { width: 1.36rem; height: 1.5rem; background-size: 1.37rem 4.6rem; background-image: url(../asset/startbtn.png); background-position: 0% 0%; }
+
+.start-btn span { display: block; }
+
+.start-btn span::after { content: ''; position: absolute; bottom: -12px; left: 17px; width: 0; height: 0; border-left: 5px solid transparent; border-right: 5px solid transparent; border-top: 12px solid #000; }
+
+.again-btn { width: 1.36rem; height: 1.5rem; background-size: 1.37rem 4.6rem; background-image: url(../asset/startbtn.png); background-position: 0% 50%; }
+
+.end-btn { width: 1.37rem; height: 1.5rem; background-size: 1.37rem 4.6rem; background-image: url(../asset/startbtn.png); background-position: 0 100%; }

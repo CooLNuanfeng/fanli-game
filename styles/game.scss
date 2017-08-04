@@ -1,24 +1,34 @@
-*{margin: 0;padding: 0;}
+*{margin: 0;padding: 0;font-family:'Helvetica Neue',Helvetica,STHeiTi,sans-serif;}
+@mixin bgPosition($spriteW, $spriteH, $iconW, $iconH, $iconX, $iconY){
+    @if($spriteW == $iconW) {
+        background-position: (0 ($iconY / ($spriteH - $iconH)) * 100%);
+    }
+    @else if($spriteH == $iconH) {
+        background-position: (($iconX / ($spriteW - $iconW)) * 100% 0);
+    }
+    @else{
+        background-position: (($iconX / ($spriteW - $iconW)) * 100% ($iconY / ($spriteH - $iconH)) * 100%);
+    }
+}
 canvas{
     margin: 0 auto;
 }
-.mask{
-    position: fixed;
+
+.top-mask{
     display: none;
+    position: fixed;
     top: 0;
-    right: 0;
-    bottom: 0;
     left: 0;
-    z-index: 50;
-    opacity: .8;
-    background: rgba(0,0,0,1);
-    div{
-        height: 100%;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        color: #fff;
-        font-size: 1rem;
+    right: 0;
+    height: .6rem;
+    padding: 0 .2rem;
+    line-height: .6rem;
+    color: #fff;
+    background: rgba(0,0,0,.8);
+    z-index: 40;
+    font-size: .25rem;
+    .top-mask-pd{
+        padding: 0 .4rem;
     }
 }
 
@@ -30,32 +40,190 @@ canvas{
     right: 0;
     bottom: 0;
     z-index: 50;
-    background: rgba(0,0,0,.8);
+    background: rgba(0,0,0,0.8);
 }
 .dialog{
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    padding: .2rem .5rem;
-    transform: translateX(-50%) translateY(-50%);
-    margin: .2rem;
-    border-radius: .1rem;
-    background: #fff;
+    display: flex;
+    height: 100%;
+    justify-content: center;
+    align-items: center;
 }
 .dialog-body{
     text-align: center;
     font-size: .2rem;
 }
-.dialog-btn{
-    padding: .1rem;
-    a{
-        display: block;
-        justify-content: center;
-        align-items: center;
-        color: #fff;
-        background: orange;
-        text-align: center;
-        font-size: .2rem;
-        border-radius: .06rem;
+.fail-get{
+    width: 5.22rem;
+    height: 7rem;
+    background: url(../asset/medal-fail.png) no-repeat;
+    background-size: contain;
+}
+.J_fail_close{
+    display: inline-block;
+    width: 0.65rem;
+    height: 0.63rem;
+    background-size: 0.66rem 1.98rem;
+    background-image: url(../asset/close.png);
+    @include bgPosition(66,198,65,63,0,135);
+    // 1
+    // width: 0.66rem;
+    // height: 0.62rem;
+    // background-size: 0.66rem 1.98rem;
+    // background-image: url(../asset/close.png);
+    // @include bgPosition(66,198,66,62,0,0);
+}
+
+.dialog-notice{
+    width: 5.22rem;
+    height: 7rem;
+    background: url(../asset/medal.png) no-repeat;
+    background-size: contain;
+    text-align: center;
+    h3{
+        font-size: .62rem;
+        font-weight: 500;
+        margin-top: .5rem;
+        margin-bottom: .15rem;
     }
+    p{
+        font-size: .34rem;
+        strong{
+            padding: 0 .05rem;
+            font-weight: 500;
+            font-size: .54rem;
+        }
+        span{
+            padding: 0 .05rem;
+        }
+    }
+}
+.notice-card{
+    display: inline-block;
+    width: 3.3rem;
+    height: 2.5rem;
+    margin-top: .8rem;
+    background: url(../asset/dialog-card.png) no-repeat;
+    background-size: contain;
+}
+.notice-qcode{
+    width: 2.15rem;
+    height: 1.24rem;
+    margin-top: 1.2rem;
+    display: inline-block;
+    background: url(../asset/dialog-code.png) no-repeat;
+    background-size: contain;
+}
+.dialog-close{
+    margin-top: .2rem;
+    display: inline-block;
+    width: 0.65rem;
+    height: 0.63rem;
+    background-size: 0.66rem 1.98rem;
+    background-image: url(../asset/close.png);
+    @include bgPosition(66,198,65,63,0,67);
+}
+
+
+.game-btn{
+    position: fixed;
+    display: none;
+}
+.look-btn{
+    top: 1.75rem;
+    left: .05rem;
+    width: 1.14rem;
+    height: 1.19rem;
+    background-size: 1.16rem 3.67rem;
+    background-image: url(../asset/btns.png);
+    @include bgPosition(116,367,114,119,0,0);
+}
+.qcode-btn{
+    top: 3rem;
+    left: .05rem;
+    width: 1.16rem;
+    height: 1.19rem;
+    background-size: 1.16rem 3.67rem;
+    background-image: url(../asset/btns.png);
+    @include bgPosition(116,367,116,119,0,124);
+}
+.share-btn{
+    top: 1.75rem;
+    right: .05rem;
+    width: 1.15rem;
+    height: 1.19rem;
+    background-size: 1.16rem 3.67rem;
+    background-image: url(../asset/btns.png);
+    @include bgPosition(116,367,115,119,0,248);
+    span{
+        display: none;
+        position: absolute;
+        top : 1.2rem;
+        right: .5rem;
+        width: 4.1rem;
+        border-radius: 4px;
+        padding: .1rem .2rem;
+        color: #fff285;
+        font-size: .2rem;
+        background: #000;
+    }
+    &.active{
+        span{
+            display: block;
+        }
+    }
+}
+
+.switch-btn{
+    position: fixed;
+    bottom: .2rem;
+    left: 0.05rem;
+    display: block;
+    span{
+        display: none;
+        position: absolute;
+        top : -.8rem;
+        left: .5rem;
+        width: 2.5rem;
+        text-align: center;
+        border-radius: 4px;
+        padding: .1rem .2rem;
+        color: #fff285;
+        font-size: .2rem;
+        background: #000;
+    }
+}
+.start-btn{
+    width: 1.36rem;
+    height: 1.5rem;
+    background-size: 1.37rem 4.6rem;
+    background-image: url(../asset/startbtn.png);
+    @include bgPosition(137,460,136,150,0,0);
+    span{
+        display: block;
+        &::after{
+            content: '';
+            position: absolute;
+            bottom: -12px;
+            left: 17px;
+            width: 0;
+            height: 0;
+            border-left: 5px solid transparent;
+            border-right: 5px solid transparent;
+            border-top: 12px solid #000;
+        }
+    }
+}
+.again-btn{
+    width: 1.36rem;
+    height: 1.5rem;
+    background-size: 1.37rem 4.6rem;
+    background-image: url(../asset/startbtn.png);
+    @include bgPosition(137,460,136,150,0,155);
+}
+.end-btn{
+    width: 1.37rem;
+    height: 1.5rem;
+    background-size: 1.37rem 4.6rem;
+    background-image: url(../asset/startbtn.png);
+    @include bgPosition(137,460,137,150,0,310);
 }
